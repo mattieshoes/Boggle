@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stdlib.h>
 #include <time.h>
@@ -8,30 +9,39 @@
 namespace boggle {
 
 
+void DictEntry::print() {
+  std::cout << "\tletter: " << letter << std::endl;
+  std::cout << "\tisword: " << isword << std::endl;
+  std::cout << "\tparent: " << parent << std::endl;
+  for (std::map<char, unsigned int>::iterator it=children.begin(); it != children.end(); it++) {
+    std::cout << "\t\tChild: " << it->first << " " << it->second << std::endl;
+  }
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Boggle solution implementation
 //////////////////////////////////////////////////////////////////////////////////////////////////
 Bogglesolution::Bogglesolution() {
-  scoringMode_ = 0;
-  initialize_();
+  scoringmode_ = 0;
+  initialize();
 }
 
-Bogglesolution::Bogglesolution(int scoringMode) {
-  scoringMode_ = scoringMode;
-  initialize_();
-}
-void Bogglesolution::initialize_() {
+void Bogglesolution::initialize() {
   points = 0;
+  longestword.clear();
   longestword.push_back("");
   words.clear();
 }
 
 void Bogglesolution::addword(std::string word) {
-  auto it = words.find(word);
-  if (it != words.end()) {
-    words[word] = words[word] + 1;
-  } else { //new word
-    words[word] = 1;
+  std::map<std::string, int>::iterator it = words.find(word);
+  if (it == words.end()) {
+    int p = points_(word);
+    if(p > 0) {
+      words[word] = p;
+      points += p;
+    }
     if (word.size() > longestword[0].size()) {
       longestword.clear();
       longestword.push_back(word);
@@ -39,54 +49,97 @@ void Bogglesolution::addword(std::string word) {
     else if (word.size() == longestword[0].size()) {
       longestword.push_back(word);
     }
-    switch (scoringMode_) {
-      case 0: //standard (1-2=0, 3-4=1, 5=2, 6=3, 7=5, 8+=11)
-        if (word.size() > 8)
-          points += 11;
-        else if (word.size() == 7)
-          points += 5;
-        else if (words.size() == 6)
-          points += 3;
-        else if (words.size() == 5)
-          points += 2;
-        else if (words.size() == 4)
-          points += 1;
-        else if (words.size() == 3)
-          points += 1;
-        break;
-      case 1: //big boggle (1-3=0, 4=1, 5=2, 6=3, 7=5, 8=11, 9+=2p/letter)
-        if (word.size() > 8)
-          points += 2 * word.size();
-        else if (word.size() == 8)
-          points += 11;
-        else if (word.size() == 7)
-          points += 5;
-        else if (words.size() == 6)
-          points += 3;
-        else if (words.size() == 5)
-          points += 2;
-        else if (words.size() == 4)
-          points += 1;
-        break;
-      
-    }
+  } 
+}
+
+int Bogglesolution::points_(std::string word) {
+  int points = 0;
+  switch (scoringmode_) {
+    case 0: //standard (1-2=0, 3-4=1, 5=2, 6=3, 7=5, 8+=11)
+      if (word.size() > 8)
+        points += 11;
+      else if (word.size() == 7)
+        points += 5;
+      else if (word.size() == 6)
+        points += 3;
+      else if (word.size() == 5)
+        points += 2;
+      else if (word.size() == 4)
+        points += 1;
+      else if (word.size() == 3)
+        points += 1;
+      break;
+    case 1: //big boggle (1-3=0, 4=1, 5=2, 6=3, 7=5, 8=11, 9+=2p/letter)
+      if (word.size() > 8)
+        points += 2 * word.size();
+      else if (word.size() == 8)
+        points += 11;
+      else if (word.size() == 7)
+        points += 5;
+      else if (word.size() == 6)
+        points += 3;
+      else if (word.size() == 5)
+        points += 2;
+      else if (word.size() == 4)
+        points += 1;
+      break;
   }
+  return points;
+}
+void Bogglesolution::setscoringmode(int scoringmode) {
+  scoringmode_ = scoringmode;
+}
+
+void Bogglesolution::print() {
+  std::cout << "Words: " << words.size() << "  Points: " << points << std::endl;
+  std::cout << "Longest: " << longestword[0];
+  for (unsigned int ii=1; ii<longestword.size(); ii++) {
+    std::cout << ", " << longestword[ii];
+  }
+  std::cout << std::endl;
+
+  int counter=0;
+  for(std::map<std::string, int>::iterator it = words.begin(); it != words.end(); it++) {
+    std::cout << std::setw(20) << it->first << "(" << it->second << ")" ;
+    counter++;
+    if(counter % 4 == 3)
+      std::cout << std::endl;
+    
+  }
+  std::cout << std::endl;
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Boggle board implementation
 //////////////////////////////////////////////////////////////////////////////////////////////////
 Boggleboard::Boggleboard() {
+  solution_.setscoringmode(0);
+  initializeoffsets_(10);
   dictname_ = "dict.txt";
   initializedict_();
   srand(time(NULL));
+  initializedice_(1);
   roll();
 }
 Boggleboard::Boggleboard(std::string dictName) {
+  solution_.setscoringmode(0);
+  initializeoffsets_(10);
   dictname_ = dictName;
   initializedict_();
   srand(time(NULL));
   roll();
+}
+
+void Boggleboard::initializeoffsets_(int dimension) {
+  offset_[0] = -dimension - 1;
+  offset_[1] = -dimension;
+  offset_[2] = -dimension+1;
+  offset_[3] = -1;
+  offset_[4] = 1;
+  offset_[5] = dimension-1;
+  offset_[6] = dimension;
+  offset_[7] = dimension+1;
 }
 
 
@@ -124,6 +177,10 @@ void Boggleboard::roll() {
       letters.erase(letters.begin()+index);
     }
   }
+}
+
+void Boggleboard::usedice(int dicemode) {
+  initializedice_(dicemode);
 }
 
 void Boggleboard::initializedice_(int gameType) {
@@ -176,8 +233,13 @@ void Boggleboard::initializedice_(int gameType) {
 
 void Boggleboard::print() {
   for (int index=10; index<90; ++index) {
-    if (board[index] != (char)0)
-      std::cout << board[index];
+    if (board[index] != (char)0) {
+      if(board[index] == 'Q') {
+        std::cout << " Qu ";
+      } else {
+        std::cout << " " << board[index] << "  ";
+      }
+    }
     if (index % 10 == 9)
       std::cout << std::endl;
     if (index % 10 == 1 && board[index] == (char)0)
@@ -195,20 +257,18 @@ void Boggleboard::initializedict_() {
   std::ifstream dictfile(dictname_);
   std::string line;
   if (dictfile.is_open()) {
-    while (getline(dictfile, line)) {
-//      std::cout << line << std::endl;
+    while (getline(dictfile, line))
       if(line.size() > 0) {
-        //line.erase(remove(line.begin(), line.end(), '\n'),line.end());
+        if (line[line.size() - 1] == '\r')
+          line.erase(line.size() - 1);
         addtodict_(line, 0, 0);
       }
-    } 
     dictfile.close();
   }
   else {
     std::cout << "Can't open dictionary file (" << dictname_ << ")" << std::endl;
     exit(1);
   }
-  std::cout << dict_.size() << std::endl;
 }
 
 void Boggleboard::addtodict_(std::string word, unsigned int wordindex, unsigned int dictindex) {
@@ -243,5 +303,76 @@ void Boggleboard::followdict_(std::string s, unsigned int dictindex) {
   }
 }
 
+void Boggleboard::setscoringmode(int scoringmode) {
+  solution_.setscoringmode(scoringmode);
+}
 
+bool Boggleboard::setboard(std::string s) {
+//TODO: implement
+  return false;
+}
+
+Bogglesolution Boggleboard::solve() {
+//std::cout << "solve called" << std::endl;
+  for (int i=0;i<100;i++) {
+    if (board[i] == (char)0)
+      used[i] = true;
+    else
+      used[i] = false;
+  }
+  solution_.initialize();
+
+  for (int index = 0; index < 100; ++index) {
+    if(board[index] != (char)0) {
+      std::string s(1, board[index]);
+      int dindex= getnewdictindex_(0, board[index]);
+      if (board[index] == 'Q') {
+        s.push_back('U');
+        dindex = getnewdictindex_(dindex, 'U');
+      }
+      if(dindex > 0) {
+        used[index] = true;
+        solve_(s, index, dindex);
+        used[index] = false;
+      }
+    }
+  }
+  return solution_;
+}
+
+void Boggleboard::solve_(std::string current, int boardindex, int dictindex) {
+  if(dict_[dictindex].isword) {
+    solution_.addword(current);
+  } else {
+    //dict_[dictindex].print();
+  }
+  for (int direction = 0; direction<8;direction++) {
+    int newboardindex = boardindex + offset_[direction];
+    if(!used[newboardindex]) {
+      char letter = board[newboardindex];
+      int newdictindex = getnewdictindex_(dictindex, letter);
+      if(letter == 'Q' && newdictindex > 0)
+        newdictindex = getnewdictindex_(newdictindex, 'U');
+      if(newdictindex > 0) {
+        used[newboardindex] = true;
+        current.push_back(letter);
+        if (letter == 'Q')
+          current.push_back('U');
+        solve_(current, newboardindex, newdictindex);
+        current.erase(current.size() - 1);
+        if(letter == 'Q')
+          current.erase(current.size() -1 );
+        used[newboardindex] = false;
+      }
+    }
+  }
+}
+
+int Boggleboard::getnewdictindex_(int currentindex, char letter) {
+  std::map<char, unsigned int>::iterator it = dict_[currentindex].children.find(letter);
+  if(it == dict_[currentindex].children.end()) {
+    return 0;
+  }
+  return it->second;
+}
 } // namespace boggle
