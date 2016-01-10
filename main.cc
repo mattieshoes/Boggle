@@ -6,10 +6,11 @@ using namespace boggle;
 int main() {
  
   Boggleboard b;
-  b.print();
-  Bogglesolution s = b.solve();
-  s.print();
-//  b.printdict();
-  
+  b.usedice(0);
+
+  for (int i=0; i<1; i++) {
+    b.roll();
+    Bogglesolution s = b.solve();
+  }
   return 0;
 }

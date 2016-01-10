@@ -56,7 +56,7 @@ int Bogglesolution::points_(std::string word) {
   int points = 0;
   switch (scoringmode_) {
     case 0: //standard (1-2=0, 3-4=1, 5=2, 6=3, 7=5, 8+=11)
-      if (word.size() > 8)
+      if (word.size() >= 8)
         points += 11;
       else if (word.size() == 7)
         points += 5;
@@ -102,7 +102,7 @@ void Bogglesolution::print() {
   for(std::map<std::string, int>::iterator it = words.begin(); it != words.end(); it++) {
     std::cout << std::setw(20) << it->first << "(" << it->second << ")" ;
     counter++;
-    if(counter % 4 == 3)
+    if(counter % 4 == 0)
       std::cout << std::endl;
     
   }
