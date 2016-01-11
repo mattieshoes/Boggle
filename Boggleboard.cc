@@ -9,11 +9,10 @@
 namespace boggle {
 
 Boggleboard::Boggleboard() {
-  solution_.setscoringmode(0);
+  solution.setscoringmode(0);
   initializeoffsets_(10);
   srand(time(NULL));
   initializedice_(1);
-  roll();
 }
 
 void Boggleboard::initializeoffsets_(int dimension) {
@@ -60,10 +59,12 @@ void Boggleboard::roll() {
       letters.erase(letters.begin()+index);
     }
   }
+  solve();
 }
 
 void Boggleboard::usedice(int dicemode) {
   initializedice_(dicemode);
+  roll();
 }
 
 void Boggleboard::initializedice_(int gameType) {
@@ -117,7 +118,7 @@ void Boggleboard::initializedice_(int gameType) {
 void Boggleboard::print() {
   for (int index=10; index<90; ++index) {
     if (board[index] != (char)0) {
-      if(board[index] == 'Q') {
+      if (board[index] == 'Q') {
         std::cout << " Qu ";
       } else {
         std::cout << " " << board[index] << "  ";
@@ -130,60 +131,55 @@ void Boggleboard::print() {
   }
 }
 
-void Boggleboard::setscoringmode(int scoringmode) {
-  solution_.setscoringmode(scoringmode);
-}
-
 bool Boggleboard::setboard(std::string s) {
 //TODO: implement
   return false;
 }
 
-Bogglesolution Boggleboard::solve() {
+void Boggleboard::solve() {
   for (int i=0;i<100;i++) {
     if (board[i] == (char)0)
       used[i] = true;
     else
       used[i] = false;
   }
-  solution_.initialize();
+  solution.initialize();
 
   for (int index = 0; index < 100; ++index) {
-    if(board[index] != (char)0) {
+    if (board[index] != (char)0) {
       std::string s(1, board[index]);
       int dindex= dict_.getnextindex(0, board[index]);
       if (board[index] == 'Q') {
         s.push_back('U');
         dindex = dict_.getnextindex(dindex, 'U');
       }
-      if(dindex > 0) {
+      if (dindex > 0) {
         used[index] = true;
         solve_(s, index, dindex);
         used[index] = false;
       }
     }
   }
-  return solution_;
 }
 
 void Boggleboard::solve_(std::string current, int boardindex, int dictindex) {
   if (dict_.isword(dictindex))
-    solution_.addword(current);
+    solution.addword(current);
   for (int direction = 0; direction<8; ++direction) {
     int newboardindex = boardindex + offset_[direction];
-    if(!used[newboardindex]) {
+    if (!used[newboardindex]) {
       char letter = board[newboardindex];
       int newdictindex = dict_.getnextindex(dictindex, letter);
-      if(letter == 'Q' && newdictindex > 0)
+      if (letter == 'Q' && newdictindex > 0)
         newdictindex = dict_.getnextindex(newdictindex, 'U');
-      if(newdictindex > 0) {
+      if (newdictindex > 0) {
         used[newboardindex] = true;
         current.push_back(letter);
         if (letter == 'Q')
           current.push_back('U');
         solve_(current, newboardindex, newdictindex);
         current.erase(current.size() - 1);
-        if(letter == 'Q')
+        if (letter == 'Q')
           current.erase(current.size() -1 );
         used[newboardindex] = false;
       }

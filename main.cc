@@ -10,8 +10,7 @@ int main() {
   b.usedice(0);
 
   b.print();
-  Bogglesolution s = b.solve();
-  s.print();
+  b.solution.print();
   
   return 0;
 }

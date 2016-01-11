@@ -10,6 +10,15 @@ namespace boggle {
 
 Bogglesolution::Bogglesolution() {
   scoringmode_ = 0;
+  scrabblevalues['A'] = 1; scrabblevalues['B'] = 3;  scrabblevalues['C'] = 3;
+  scrabblevalues['D'] = 2; scrabblevalues['E'] = 1;  scrabblevalues['F'] = 4;
+  scrabblevalues['G'] = 2; scrabblevalues['H'] = 4;  scrabblevalues['I'] = 1;
+  scrabblevalues['J'] = 8; scrabblevalues['K'] = 5;  scrabblevalues['L'] = 1;
+  scrabblevalues['M'] = 3; scrabblevalues['N'] = 1;  scrabblevalues['O'] = 1;
+  scrabblevalues['P'] = 3; scrabblevalues['Q'] = 10; scrabblevalues['R'] = 1;
+  scrabblevalues['S'] = 1; scrabblevalues['T'] = 1;  scrabblevalues['U'] = 1;
+  scrabblevalues['V'] = 4; scrabblevalues['W'] = 4;  scrabblevalues['X'] = 8;
+  scrabblevalues['4'] = 1; scrabblevalues['Z'] = 10; 
   initialize();
 }
 
@@ -24,7 +33,7 @@ void Bogglesolution::addword(std::string word) {
   std::map<std::string, int>::iterator it = words.find(word);
   if (it == words.end()) {
     int p = points_(word);
-    if(p > 0) {
+    if (p > 0) {
       words[word] = p;
       points += p;
     }
@@ -69,6 +78,10 @@ int Bogglesolution::points_(std::string word) {
       else if (word.size() == 4)
         points += 1;
       break;
+    case 2: //scrabble
+      for (unsigned int index = 0; index < word.size(); ++index)
+        points += scrabblevalues[word[index]];
+      break;
   }
   return points;
 }
@@ -83,14 +96,12 @@ void Bogglesolution::print() {
     std::cout << ", " << longestword[ii];
   }
   std::cout << std::endl;
-
   int counter=0;
-  for(std::map<std::string, int>::iterator it = words.begin(); it != words.end(); it++) {
-    std::cout << std::setw(20) << it->first << "(" << it->second << ")" ;
+  for (std::map<std::string, int>::iterator it = words.begin(); it != words.end(); it++) {
+    std::cout << std::setw(12) << it->first << "(" << it->second << ")" ;
     counter++;
-    if(counter % 4 == 0)
+    if (counter % 5 == 0)
       std::cout << std::endl;
-    
   }
   std::cout << std::endl;
 }

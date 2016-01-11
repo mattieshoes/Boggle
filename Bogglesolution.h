@@ -7,6 +7,9 @@
 
 namespace boggle {
 
+// Bogglesolution keeps track of words and the scoring system for those words
+// It'll also print a reasonably pretty list.  It does no legality checking, just scorekeeping.
+
 class Bogglesolution {
  public:
   Bogglesolution();
@@ -19,6 +22,7 @@ class Bogglesolution {
   std::map<std::string,int> words;
  private:
   int points_(std::string word);
+  std::map<char,int> scrabblevalues;
   int scoringmode_;
 };
 } // namespace boggle

@@ -39,7 +39,7 @@ void Dict::initialize_(std::string DictionaryFile) {
   std::string line;
   if (dictfile.is_open()) {
     while (getline(dictfile, line))
-      if(line.size() > 0) {
+      if (line.size() > 0) {
         if (line[line.size() - 1] == '\r')
           line.erase(line.size() - 1);
         addtodict_(line, 0, 0);
@@ -57,7 +57,7 @@ void Dict::addtodict_(std::string word, unsigned int wordindex, unsigned int dic
     dict_[dictindex].isword = true;
     return;
   }
-  if(dict_[dictindex].children.count(word[wordindex]) == 0) {
+  if (dict_[dictindex].children.count(word[wordindex]) == 0) {
     dict_.push_back(DictEntry());
     dict_.back().letter = word[wordindex];
     dict_.back().parent = dictindex;
@@ -73,10 +73,10 @@ void Dict::print() {
 }
 
 void Dict::print_(std::string Prefix, unsigned int Index) {
-  if(dict_[Index].isword)
+  if (dict_[Index].isword)
     std::cout << Prefix << std::endl;
   std::map<char, unsigned int>::iterator it;
-  for(it = dict_[Index].children.begin(); it != dict_[Index].children.end(); it++) {
+  for (it = dict_[Index].children.begin(); it != dict_[Index].children.end(); it++) {
     Prefix.push_back(it->first);
     print_(Prefix, it->second);
     Prefix.erase(Prefix.size()-1);
@@ -85,7 +85,7 @@ void Dict::print_(std::string Prefix, unsigned int Index) {
 
 int Dict::getnextindex(unsigned int currentindex, char letter) {
   std::map<char, unsigned int>::iterator it = dict_[currentindex].children.find(letter);
-  if(it == dict_[currentindex].children.end())
+  if (it == dict_[currentindex].children.end())
     return 0;
   return it->second;
 }
