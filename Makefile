@@ -1,6 +1,6 @@
 CXX      = g++
 CXXFLAGS = -Wall -Wextra -std=c++0x -MMD -O3
-OBJECTS  = main.o Boggle.o
+OBJECTS  = Dict.o Bogglesolution.o Boggleboard.o main.o
 DEPENDS  = ${OBJECTS:.o=.d}
 EXEC     = boggle
 

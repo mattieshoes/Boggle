@@ -4,130 +4,15 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
-#include "Boggle.h"
+#include "Boggleboard.h"
 
 namespace boggle {
 
-
-void DictEntry::print() {
-  std::cout << "\tletter: " << letter << std::endl;
-  std::cout << "\tisword: " << isword << std::endl;
-  std::cout << "\tparent: " << parent << std::endl;
-  for (std::map<char, unsigned int>::iterator it=children.begin(); it != children.end(); it++) {
-    std::cout << "\t\tChild: " << it->first << " " << it->second << std::endl;
-  }
-
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Boggle solution implementation
-//////////////////////////////////////////////////////////////////////////////////////////////////
-Bogglesolution::Bogglesolution() {
-  scoringmode_ = 0;
-  initialize();
-}
-
-void Bogglesolution::initialize() {
-  points = 0;
-  longestword.clear();
-  longestword.push_back("");
-  words.clear();
-}
-
-void Bogglesolution::addword(std::string word) {
-  std::map<std::string, int>::iterator it = words.find(word);
-  if (it == words.end()) {
-    int p = points_(word);
-    if(p > 0) {
-      words[word] = p;
-      points += p;
-    }
-    if (word.size() > longestword[0].size()) {
-      longestword.clear();
-      longestword.push_back(word);
-    }
-    else if (word.size() == longestword[0].size()) {
-      longestword.push_back(word);
-    }
-  } 
-}
-
-int Bogglesolution::points_(std::string word) {
-  int points = 0;
-  switch (scoringmode_) {
-    case 0: //standard (1-2=0, 3-4=1, 5=2, 6=3, 7=5, 8+=11)
-      if (word.size() >= 8)
-        points += 11;
-      else if (word.size() == 7)
-        points += 5;
-      else if (word.size() == 6)
-        points += 3;
-      else if (word.size() == 5)
-        points += 2;
-      else if (word.size() == 4)
-        points += 1;
-      else if (word.size() == 3)
-        points += 1;
-      break;
-    case 1: //big boggle (1-3=0, 4=1, 5=2, 6=3, 7=5, 8=11, 9+=2p/letter)
-      if (word.size() > 8)
-        points += 2 * word.size();
-      else if (word.size() == 8)
-        points += 11;
-      else if (word.size() == 7)
-        points += 5;
-      else if (word.size() == 6)
-        points += 3;
-      else if (word.size() == 5)
-        points += 2;
-      else if (word.size() == 4)
-        points += 1;
-      break;
-  }
-  return points;
-}
-void Bogglesolution::setscoringmode(int scoringmode) {
-  scoringmode_ = scoringmode;
-}
-
-void Bogglesolution::print() {
-  std::cout << "Words: " << words.size() << "  Points: " << points << std::endl;
-  std::cout << "Longest: " << longestword[0];
-  for (unsigned int ii=1; ii<longestword.size(); ii++) {
-    std::cout << ", " << longestword[ii];
-  }
-  std::cout << std::endl;
-
-  int counter=0;
-  for(std::map<std::string, int>::iterator it = words.begin(); it != words.end(); it++) {
-    std::cout << std::setw(20) << it->first << "(" << it->second << ")" ;
-    counter++;
-    if(counter % 4 == 0)
-      std::cout << std::endl;
-    
-  }
-  std::cout << std::endl;
-
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Boggle board implementation
-//////////////////////////////////////////////////////////////////////////////////////////////////
 Boggleboard::Boggleboard() {
   solution_.setscoringmode(0);
   initializeoffsets_(10);
-  dictname_ = "dict.txt";
-  initializedict_();
   srand(time(NULL));
   initializedice_(1);
-  roll();
-}
-Boggleboard::Boggleboard(std::string dictName) {
-  solution_.setscoringmode(0);
-  initializeoffsets_(10);
-  dictname_ = dictName;
-  initializedict_();
-  srand(time(NULL));
   roll();
 }
 
@@ -142,11 +27,9 @@ void Boggleboard::initializeoffsets_(int dimension) {
   offset_[7] = dimension+1;
 }
 
-
 void Boggleboard::roll() {  
   for (int ii=0; ii<100; ++ii)
     board[ii] = (char)0;
-
   int dimension = 0;
   if (dice.size() == 4)
     dimension = 2;
@@ -169,7 +52,7 @@ void Boggleboard::roll() {
   for (int ii=0; ii < dimension * dimension; ii++)
     letters.push_back(dice[ii][rand()%6]);
 
-  //drop them in the appropriate squares
+  //drop a random die in each square
   for (int row=0; row < dimension; ++row) {
     for (int col=0; col < dimension; ++col) {
       int index = rand() % letters.size();
@@ -247,62 +130,6 @@ void Boggleboard::print() {
   }
 }
 
-void Boggleboard::initializedict_() {
-  dict_.clear();
-  dict_.push_back(DictEntry());
-  dict_[0].isword = false;
-  dict_[0].parent = 0;
-  dict_[0].letter = (char)0;
-
-  std::ifstream dictfile(dictname_);
-  std::string line;
-  if (dictfile.is_open()) {
-    while (getline(dictfile, line))
-      if(line.size() > 0) {
-        if (line[line.size() - 1] == '\r')
-          line.erase(line.size() - 1);
-        addtodict_(line, 0, 0);
-      }
-    dictfile.close();
-  }
-  else {
-    std::cout << "Can't open dictionary file (" << dictname_ << ")" << std::endl;
-    exit(1);
-  }
-}
-
-void Boggleboard::addtodict_(std::string word, unsigned int wordindex, unsigned int dictindex) {
-
-  if (wordindex == word.size()) {
-    dict_[dictindex].isword = true;
-    return;
-  }
-  if(dict_[dictindex].children.count(word[wordindex]) == 0) {
-    dict_.push_back(DictEntry());
-    dict_.back().letter = word[wordindex];
-    dict_.back().parent = dictindex;
-    dict_[dictindex].children[word[wordindex]] = dict_.size() - 1;
-    addtodict_(word, wordindex+1, dict_.size() - 1);
-  } else { // next letter exists in tree
-    addtodict_(word, wordindex+1, dict_[dictindex].children[word[wordindex]]);
-  }
-}
-
-void Boggleboard::printdict() {
-  followdict_("", 0);
-}
-void Boggleboard::followdict_(std::string s, unsigned int dictindex) {
-  if(dict_[dictindex].isword)
-    std::cout << s << std::endl;
-
-  std::map<char, unsigned int>::iterator it;
-  for(it = dict_[dictindex].children.begin(); it != dict_[dictindex].children.end(); it++) {
-    std::string n = s;
-    n += it->first;
-    followdict_(n, it->second);
-  }
-}
-
 void Boggleboard::setscoringmode(int scoringmode) {
   solution_.setscoringmode(scoringmode);
 }
@@ -313,7 +140,6 @@ bool Boggleboard::setboard(std::string s) {
 }
 
 Bogglesolution Boggleboard::solve() {
-//std::cout << "solve called" << std::endl;
   for (int i=0;i<100;i++) {
     if (board[i] == (char)0)
       used[i] = true;
@@ -325,10 +151,10 @@ Bogglesolution Boggleboard::solve() {
   for (int index = 0; index < 100; ++index) {
     if(board[index] != (char)0) {
       std::string s(1, board[index]);
-      int dindex= getnewdictindex_(0, board[index]);
+      int dindex= dict_.getnextindex(0, board[index]);
       if (board[index] == 'Q') {
         s.push_back('U');
-        dindex = getnewdictindex_(dindex, 'U');
+        dindex = dict_.getnextindex(dindex, 'U');
       }
       if(dindex > 0) {
         used[index] = true;
@@ -341,18 +167,15 @@ Bogglesolution Boggleboard::solve() {
 }
 
 void Boggleboard::solve_(std::string current, int boardindex, int dictindex) {
-  if(dict_[dictindex].isword) {
+  if (dict_.isword(dictindex))
     solution_.addword(current);
-  } else {
-    //dict_[dictindex].print();
-  }
-  for (int direction = 0; direction<8;direction++) {
+  for (int direction = 0; direction<8; ++direction) {
     int newboardindex = boardindex + offset_[direction];
     if(!used[newboardindex]) {
       char letter = board[newboardindex];
-      int newdictindex = getnewdictindex_(dictindex, letter);
+      int newdictindex = dict_.getnextindex(dictindex, letter);
       if(letter == 'Q' && newdictindex > 0)
-        newdictindex = getnewdictindex_(newdictindex, 'U');
+        newdictindex = dict_.getnextindex(newdictindex, 'U');
       if(newdictindex > 0) {
         used[newboardindex] = true;
         current.push_back(letter);
@@ -366,13 +189,5 @@ void Boggleboard::solve_(std::string current, int boardindex, int dictindex) {
       }
     }
   }
-}
-
-int Boggleboard::getnewdictindex_(int currentindex, char letter) {
-  std::map<char, unsigned int>::iterator it = dict_[currentindex].children.find(letter);
-  if(it == dict_[currentindex].children.end()) {
-    return 0;
-  }
-  return it->second;
 }
 } // namespace boggle
