@@ -1,16 +1,24 @@
 #include <iostream>
-#include "Bogglesolution.h"
-#include "Boggleboard.h"
 
-using namespace boggle;
+#include "Dict.h"
+#include "Dice.h"
+#include "Board.h"
+#include "Solution.h"
 
 int main() {
- 
-  Boggleboard b;
-  b.usedice(0);
 
-  b.print();
-  b.solution.print();
-  
-  return 0;
+    boggle::Dict dict;
+    boggle::Dice dice;
+    boggle::Board board;
+    boggle::Solution solution;
+
+    dice.setDice(boggle::Dice::DiceSet::ORIGINAL);
+    solution.setScoringMode(boggle::Solution::ScoringMode::BOGGLE);
+
+    for (int ii = 0; ii < 10000; ii++) {
+        board.setBoard(dice.roll());
+        board.solve(dict, solution);
+    }
+
+    return 0;
 }
