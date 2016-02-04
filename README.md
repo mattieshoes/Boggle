@@ -1,10 +1,10 @@
 # Boggle
 A boggle solver written in c++
 
-Can use arbitrary dice -- Original, updated, big boggle, and boggle deluxe dice are hard coded in there as well
-Can use arbitrary dictionaries -- Using sowpods by default
-Solution class can score using boggle or big boggle rules, or scrabble values
-Can solve arbitrary sized square boggle boards -- for instance, a 32x32 board 
+* Can use arbitrary dice -- Original, updated, big boggle, and boggle deluxe dice are hard coded in there as well
+* Can use arbitrary dictionaries -- Using sowpods by default.
+* Solution class can score using boggle or big boggle rules, or scrabble values
+* Can solve arbitrary sized square boggle boards -- for instance, a 32x32 board 
 
 <pre>
  C   S   R   N   O   U   T   T   N   I   A   T   R   L   E   G   R   K   I   T   E   Y   H   T   X   A   R   W   D   N   M   N
